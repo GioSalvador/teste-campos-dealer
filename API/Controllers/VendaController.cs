@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Configuration;
+//using System.Web;
 using System.Web.Http;
-using System.Web.Mvc;
+//using System.Web.Mvc;
 using TesteCamposDealer.DB;
+using TesteCamposDealer.Models;
 
 namespace TesteCamposDealer.Controllers
 {
@@ -19,19 +21,22 @@ namespace TesteCamposDealer.Controllers
         public Venda GetById(int idVenda)
         {
             Venda vendaRet = null;
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
             {
-                vendaRet = (from c in db.Venda
+                vendaRet = (from c in db.Vendas
                           where c.idVenda == idVenda
                           select c).FirstOrDefault();
             }
-            catch (Exception ex)
+            catch 
             {
-                throw ex;
+                throw;
             }
 
             return vendaRet;
@@ -44,18 +49,21 @@ namespace TesteCamposDealer.Controllers
         public List<Venda> GetAll()
         {
             List<Venda> lstVendaret = null;
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
             {
-                lstVendaret = (from c in db.Venda
+                lstVendaret = (from c in db.Vendas
                              select c).ToList();
             }
-            catch (Exception ex)
+            catch 
             {
-                throw ex;
+                throw;
             }
 
             return lstVendaret;
@@ -66,18 +74,39 @@ namespace TesteCamposDealer.Controllers
         /// Cadastra uma venda
         /// </summary>
         /// <param name="cliente"></param>
-        public bool Post([FromBody] Venda vendaDTO)
-        {
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
-            db.DeferredLoadingEnabled = false;
+        [System.Web.Http.HttpPost]
+        public bool Post([FromBody] TesteCamposDealer.Models.VendaVM vendaDTO)
+        {
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
 
             try
             {
-                db.Venda.InsertOnSubmit(vendaDTO);
+                
+                Venda novaVenda = new Venda();
+                novaVenda.idCliente = vendaDTO.idCliente;
+                novaVenda.dthRegistro = DateTime.Now;
+
+                db.Vendas.InsertOnSubmit(novaVenda);
+                db.SubmitChanges(); 
+
+                foreach (var item in vendaDTO.Itens)
+                {
+                    VendaItem novoItem = new VendaItem();
+                    novoItem.idVenda = novaVenda.idVenda;
+                    novoItem.idProduto = item.idProduto;
+                    novoItem.quantidade = item.quantidade;
+                    novoItem.vlrUnitario = item.vlrUnitario;
+
+                    db.VendaItems.InsertOnSubmit(novoItem);
+                }
+
                 db.SubmitChanges();
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -90,30 +119,30 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         /// <param name="idVenda"></param>
         /// <param name="vendaDTO"></param>
-        [System.Web.Http.ActionName("PutById")]
-        public bool Put(int idVenda, [FromBody] Venda vendaDTO)
-        {
-            Venda vendaRet = null;
+        //[System.Web.Http.ActionName("PutById")]
+        //public bool Put(int idVenda, [FromBody] Venda vendaDTO)
+        //{
+        //    Venda vendaRet = null;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
-            db.DeferredLoadingEnabled = false;
+        //    DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+        //    db.DeferredLoadingEnabled = false;
 
-            try
-            {
-                vendaRet = (from c in db.Venda
-                          where c.idVenda == idVenda
-                          select c).FirstOrDefault();
+        //    try
+        //    {
+        //        vendaRet = (from c in db.Venda
+        //                  where c.idVenda == idVenda
+        //                  select c).FirstOrDefault();
 
-                vendaRet.vlrProduto = vendaDTO.vlrProduto;
-                db.SubmitChanges();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+        //        vendaRet.vlrProduto = vendaDTO.vlrProduto;
+        //        db.SubmitChanges();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
         /// <summary>
         /// Deleta uma venda pelo seu id
@@ -123,22 +152,25 @@ namespace TesteCamposDealer.Controllers
         public bool Delete(int idVenda)
         {
             Venda vendaRet = null;
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
             {
-                vendaRet = (from c in db.Venda
+                vendaRet = (from c in db.Vendas
                           where c.idVenda == idVenda
                           select c).FirstOrDefault();
 
-                db.Venda.DeleteOnSubmit(vendaRet);
+                db.Vendas.DeleteOnSubmit(vendaRet);
                 db.SubmitChanges();
             }
-            catch (Exception ex)
+            catch 
             {
-                throw ex;
+                throw;
             }
 
             return true;
