@@ -1,12 +1,12 @@
 # Teste Técnico – API Loja do Sr. Campos
 
-## 📌 Visão Geral
+## Visão Geral
 Este projeto faz parte de um teste técnico para vaga de Backend em C# .NET.  
 A aplicação consiste em uma API responsável pelo gerenciamento de clientes, produtos e vendas, evoluindo uma solução base fornecida.
 
 ---
 
-## 🧱 Arquitetura e Tecnologias
+## Arquitetura e Tecnologias
 - **Framework:** ASP.NET Web API (.NET Framework)
 - **Linguagem:** C#
 - **Persistência:** SQL Server + LINQ to SQL (DBML)
@@ -17,7 +17,7 @@ A solução utiliza LINQ para acesso e manipulação dos dados, mantendo aderên
 
 ---
 
-## 👤 ClienteController
+## ClienteController
 Funcionalidades implementadas:
 - Consulta de cliente por ID
 - Listagem de clientes
@@ -27,7 +27,7 @@ Funcionalidades implementadas:
 
 ---
 
-## 📦 ProdutoController
+## ProdutoController
 Funcionalidades implementadas:
 - Consulta de produto por ID
 - Listagem de produtos
@@ -39,7 +39,7 @@ O controller já está preparado para futuras extensões relacionadas a históri
 
 ---
 
-## 🛒 VendaController
+## VendaController
 Funcionalidades implementadas:
 - Cadastro de venda vinculada a um cliente
 - Registro de múltiplos itens por venda
@@ -54,7 +54,7 @@ O cadastro de venda utiliza um **ViewModel (`VendaVM`)**, permitindo:
 
 ---
 
-## 📡 Exemplos de Endpoints
+## Exemplos de Endpoints
 - `GET /api/Cliente/GetById?idCliente=1`
 - `GET /api/Produto/GetAll`
 - `POST /api/Venda/Post`
@@ -62,6 +62,6 @@ O cadastro de venda utiliza um **ViewModel (`VendaVM`)**, permitindo:
 
 ---
 
-## 📝 Observações
+## Observações
 - O foco inicial foi garantir a persistência correta dos dados e o funcionamento dos principais fluxos de negócio.
 - Melhorias como padronização de status HTTP, cálculo de valores totais e endpoints adicionais serão abordadas em etapas futuras.
