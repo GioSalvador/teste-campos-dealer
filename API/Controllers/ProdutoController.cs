@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Http;
-using System.Web.Mvc;
 using TesteCamposDealer.DB;
 
 namespace TesteCamposDealer.Controllers
@@ -15,23 +15,28 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         /// <param name="idProduto"></param>
         /// <returns></returns>
-        [System.Web.Http.ActionName("GetById")]
+        [HttpGet]
+        [ActionName("GetById")]
         public Produto GetById(int idProduto)
         {
             Produto produtoRet = null;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
             {
-                produtoRet = (from c in db.Produto
+                produtoRet = (from c in db.Produtos
                           where c.idProduto == idProduto
                           select c).FirstOrDefault();
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return produtoRet;
@@ -41,21 +46,25 @@ namespace TesteCamposDealer.Controllers
         /// Recupera todos os Produtos
         /// </summary>
         /// <returns></returns>
+        [HttpGet]
         public List<Produto> GetAll()
         {
             List<Produto> lstProdutoRet = null;
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
             {
-                lstProdutoRet = (from c in db.Produto
+                lstProdutoRet = (from c in db.Produtos
                              select c).ToList();
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return lstProdutoRet;
@@ -66,18 +75,22 @@ namespace TesteCamposDealer.Controllers
         /// Cadastra um Produto
         /// </summary>
         /// <param name="produtoDTO"></param>
+        [HttpPost]
         public bool Post([FromBody] Produto produtoDTO)
         {
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
             {
-                db.Produto.InsertOnSubmit(produtoDTO);
+                db.Produtos.InsertOnSubmit(produtoDTO);
                 db.SubmitChanges();
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -90,27 +103,35 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <param name="value"></param>
-        [System.Web.Http.ActionName("PutById")]
+        [HttpPut]
+        [ActionName("PutById")]
         public bool Put(int idProduto, [FromBody] Produto produtoDTO)
         {
             Produto prodRet = null;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
             {
-                prodRet = (from c in db.Produto
-                          where c.idProduto == idProduto
-                          select c).FirstOrDefault();
+                prodRet = (from c in db.Produtos
+                           where c.idProduto == idProduto
+                           select c).FirstOrDefault();
+
+                if (prodRet == null)
+                    return false;
 
                 prodRet.dscProduto = produtoDTO.dscProduto;
                 
                 db.SubmitChanges();
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return true;
@@ -120,26 +141,34 @@ namespace TesteCamposDealer.Controllers
         /// Deleta um Produto pelo seu id
         /// </summary>
         /// <param name="idProduto"></param>
-        [System.Web.Http.ActionName("DeleteById")]
+        [HttpDelete]
+        [ActionName("DeleteById")]
         public bool Delete(int idProduto)
         {
             Produto prodRet = null;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
             {
-                prodRet = (from c in db.Produto
-                          where c.idProduto == idProduto
-                          select c).FirstOrDefault();
+                prodRet = (from c in db.Produtos
+                           where c.idProduto == idProduto
+                           select c).FirstOrDefault();
 
-                db.Produto.DeleteOnSubmit(prodRet);
+                if (prodRet == null)
+                    return false;
+
+                db.Produtos.DeleteOnSubmit(prodRet);
                 db.SubmitChanges();
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                return false;
             }
 
             return true;

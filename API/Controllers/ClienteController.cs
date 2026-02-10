@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Http;
@@ -20,7 +21,11 @@ namespace TesteCamposDealer.Controllers
         {
             Cliente cliret = null;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
@@ -29,9 +34,9 @@ namespace TesteCamposDealer.Controllers
                           where c.idCliente == idCliente
                           select c).FirstOrDefault();
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return cliret;
@@ -45,7 +50,11 @@ namespace TesteCamposDealer.Controllers
         {
             List<Cliente> lstCliRet = null;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
@@ -53,9 +62,9 @@ namespace TesteCamposDealer.Controllers
                 lstCliRet = (from c in db.Cliente
                           select c).ToList();
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return lstCliRet;
@@ -69,7 +78,11 @@ namespace TesteCamposDealer.Controllers
         public bool Post([FromBody] Cliente clienteDTO)
         {
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
@@ -77,7 +90,7 @@ namespace TesteCamposDealer.Controllers
                 db.Cliente.InsertOnSubmit(clienteDTO);
                 db.SubmitChanges();
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -95,7 +108,11 @@ namespace TesteCamposDealer.Controllers
         {
             Cliente cliret = null;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
@@ -108,9 +125,9 @@ namespace TesteCamposDealer.Controllers
                 cliret.nomeCliente = clienteDTO.nomeCliente;
                 db.SubmitChanges();
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return true;
@@ -125,7 +142,11 @@ namespace TesteCamposDealer.Controllers
         {
             Cliente cliret = null;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
+            var conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
+            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
             db.DeferredLoadingEnabled = false;
 
             try
@@ -137,9 +158,9 @@ namespace TesteCamposDealer.Controllers
                 db.Cliente.DeleteOnSubmit(cliret);
                 db.SubmitChanges();
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
 
             return true;
