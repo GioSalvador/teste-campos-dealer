@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Web;
+using System.Net;
 using System.Web.Http;
 using TesteCamposDealer.DB;
 
 namespace TesteCamposDealer.Controllers
 {
+    [RoutePrefix("api/produto")]
     public class ProdutoController : ApiController
     {
         /// <summary>
@@ -16,30 +17,25 @@ namespace TesteCamposDealer.Controllers
         /// <param name="idProduto"></param>
         /// <returns></returns>
         [HttpGet]
-        [ActionName("GetById")]
-        public Produto GetById(int idProduto)
+        [Route("{idProduto:int}")]
+        public IHttpActionResult GetById(int idProduto)
         {
-            Produto produtoRet = null;
-
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
+                .ConnectionStrings["TesteCamposDealerConnectionString"]
+                .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
-            db.DeferredLoadingEnabled = false;
-
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                produtoRet = (from c in db.Produtos
-                          where c.idProduto == idProduto
-                          select c).FirstOrDefault();
-            }
-            catch
-            {
-                throw;
-            }
+                db.DeferredLoadingEnabled = false;
 
-            return produtoRet;
+                var produto = db.Produtos
+                    .FirstOrDefault(p => p.idProduto == idProduto);
+
+                if (produto == null)
+                    return Content(HttpStatusCode.NotFound, "Produto não encontrado");
+
+                return Ok(produto);
+            }
         }
 
         /// <summary>
@@ -47,55 +43,55 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public List<Produto> GetAll()
+        [Route("")]
+        public IHttpActionResult GetAll()
         {
-            List<Produto> lstProdutoRet = null;
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
+             .ConnectionStrings["TesteCamposDealerConnectionString"]
+             .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
-            db.DeferredLoadingEnabled = false;
-
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                lstProdutoRet = (from c in db.Produtos
-                             select c).ToList();
+                db.DeferredLoadingEnabled = false;
+                var produtos = db.Produtos.ToList();
+                return Ok(produtos);
             }
-            catch
-            {
-                throw;
-            }
-
-            return lstProdutoRet;
         }
-
 
         /// <summary>
         /// Cadastra um Produto
         /// </summary>
         /// <param name="produtoDTO"></param>
         [HttpPost]
-        public bool Post([FromBody] Produto produtoDTO)
+        [Route("")]
+        public IHttpActionResult Post([FromBody] Produto produtoDTO)
         {
+            if (produtoDTO == null)
+                return BadRequest("Body da requisição não pode ser vazio");
+
+            if (string.IsNullOrWhiteSpace(produtoDTO.dscProduto))
+                return BadRequest("Descrição do produto é obrigatória");
+
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
+                .ConnectionStrings["TesteCamposDealerConnectionString"]
+                .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
-            db.DeferredLoadingEnabled = false;
-
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                db.Produtos.InsertOnSubmit(produtoDTO);
-                db.SubmitChanges();
-            }
-            catch
-            {
-                return false;
-            }
+                db.DeferredLoadingEnabled = false;
 
-            return true;
+                try
+                {
+                    db.Produtos.InsertOnSubmit(produtoDTO);
+                    db.SubmitChanges();
+                }
+                catch (Exception ex)
+                {
+                    return InternalServerError(ex);
+                }
+
+                return Content(HttpStatusCode.Created, produtoDTO);
+            }
         }
 
         /// <summary>
@@ -104,37 +100,32 @@ namespace TesteCamposDealer.Controllers
         /// <param name="id"></param>
         /// <param name="value"></param>
         [HttpPut]
-        [ActionName("PutById")]
-        public bool Put(int idProduto, [FromBody] Produto produtoDTO)
+        [Route("{idProduto:int}")]
+        public IHttpActionResult Put(int idProduto, [FromBody] Produto produtoDTO)
         {
-            Produto prodRet = null;
+            if (produtoDTO == null)
+                return BadRequest("Body da requisição não pode ser vazio");
 
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
+                .ConnectionStrings["TesteCamposDealerConnectionString"]
+                .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
-            db.DeferredLoadingEnabled = false;
-
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                prodRet = (from c in db.Produtos
-                           where c.idProduto == idProduto
-                           select c).FirstOrDefault();
+                db.DeferredLoadingEnabled = false;
 
-                if (prodRet == null)
-                    return false;
+                var produto = db.Produtos
+                    .FirstOrDefault(p => p.idProduto == idProduto);
 
-                prodRet.dscProduto = produtoDTO.dscProduto;
-                
+                if (produto == null)
+                    return Content(HttpStatusCode.NotFound, "Produto não encontrado");
+
+                produto.dscProduto = produtoDTO.dscProduto;
+
                 db.SubmitChanges();
-            }
-            catch
-            {
-                throw;
-            }
 
-            return true;
+                return Ok("Produto atualizado com sucesso");
+            }
         }
 
         /// <summary>
@@ -142,36 +133,28 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         /// <param name="idProduto"></param>
         [HttpDelete]
-        [ActionName("DeleteById")]
-        public bool Delete(int idProduto)
+        [Route("{idProduto:int}")]
+        public IHttpActionResult Delete(int idProduto)
         {
-            Produto prodRet = null;
-
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
+                .ConnectionStrings["TesteCamposDealerConnectionString"]
+                .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
-            db.DeferredLoadingEnabled = false;
-
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                prodRet = (from c in db.Produtos
-                           where c.idProduto == idProduto
-                           select c).FirstOrDefault();
+                db.DeferredLoadingEnabled = false;
 
-                if (prodRet == null)
-                    return false;
+                var produto = db.Produtos
+                    .FirstOrDefault(p => p.idProduto == idProduto);
 
-                db.Produtos.DeleteOnSubmit(prodRet);
+                if (produto == null)
+                    return Content(HttpStatusCode.NotFound, "Produto não encontrado");
+
+                db.Produtos.DeleteOnSubmit(produto);
                 db.SubmitChanges();
-            }
-            catch
-            {
-                return false;
-            }
 
-            return true;
+                return Ok("Produto removido com sucesso");
+            }
         }
     }
 }
