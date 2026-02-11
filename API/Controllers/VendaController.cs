@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Configuration;
-//using System.Web;
 using System.Web.Http;
-//using System.Web.Mvc;
 using TesteCamposDealer.DB;
-using TesteCamposDealer.Models;
 
 namespace TesteCamposDealer.Controllers
 {
+    [RoutePrefix("api/venda")]
     public class VendaController : ApiController
     {
         /// <summary>
@@ -17,56 +16,46 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         /// <param name="idVenda"></param>
         /// <returns></returns>
-        [System.Web.Http.ActionName("GetById")]
-        public Venda GetById(int idVenda)
+        [HttpGet]
+        [Route("")]
+        public IHttpActionResult GetAll()
         {
-            Venda vendaRet = null;
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
+               .ConnectionStrings["TesteCamposDealerConnectionString"]
+               .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
-            db.DeferredLoadingEnabled = false;
-
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                vendaRet = (from c in db.Vendas
-                          where c.idVenda == idVenda
-                          select c).FirstOrDefault();
+                db.DeferredLoadingEnabled = false;
+                var vendas = db.Vendas.ToList();
+                return Ok(vendas);
             }
-            catch 
-            {
-                throw;
-            }
-
-            return vendaRet;
         }
 
         /// <summary>
         /// Recupera todas as vendas
         /// </summary>
         /// <returns></returns>
-        public List<Venda> GetAll()
+        [HttpGet]
+        [Route("{idVenda:int}")]
+        public IHttpActionResult GetById(int idVenda)
         {
-            List<Venda> lstVendaret = null;
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
+                 .ConnectionStrings["TesteCamposDealerConnectionString"]
+                 .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
-            db.DeferredLoadingEnabled = false;
-
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                lstVendaret = (from c in db.Vendas
-                             select c).ToList();
-            }
-            catch 
-            {
-                throw;
-            }
+                db.DeferredLoadingEnabled = false;
 
-            return lstVendaret;
+                var venda = db.Vendas
+                    .FirstOrDefault(v => v.idVenda == idVenda);
+
+                if (venda == null)
+                    return Content(HttpStatusCode.NotFound, "Venda não encontrada");
+
+                return Ok(venda);
+            }
         }
 
 
@@ -75,43 +64,33 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         /// <param name="cliente"></param>
 
-        [System.Web.Http.HttpPost]
-        public bool Post([FromBody] TesteCamposDealer.Models.VendaVM vendaDTO)
+        [HttpPost]
+        [Route("")]
+        public IHttpActionResult Post([FromBody] Venda vendaDTO)
         {
+            if (vendaDTO == null)
+                return BadRequest("Body da requisição não pode ser vazio");
+
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
+                .ConnectionStrings["TesteCamposDealerConnectionString"]
+                .ConnectionString;
 
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                
-                Venda novaVenda = new Venda();
-                novaVenda.idCliente = vendaDTO.idCliente;
-                novaVenda.dthRegistro = DateTime.Now;
+                db.DeferredLoadingEnabled = false;
 
-                db.Vendas.InsertOnSubmit(novaVenda);
-                db.SubmitChanges(); 
+                try {
 
-                foreach (var item in vendaDTO.Itens)
+                    db.Vendas.InsertOnSubmit(vendaDTO);
+                    db.SubmitChanges();
+                }
+                catch (Exception ex)
                 {
-                    VendaItem novoItem = new VendaItem();
-                    novoItem.idVenda = novaVenda.idVenda;
-                    novoItem.idProduto = item.idProduto;
-                    novoItem.quantidade = item.quantidade;
-                    novoItem.vlrUnitario = item.vlrUnitario;
-
-                    db.VendaItems.InsertOnSubmit(novoItem);
+                    return InternalServerError(ex);
                 }
 
-                db.SubmitChanges();
+                return Content(HttpStatusCode.Created, vendaDTO);
             }
-            catch
-            {
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -119,61 +98,59 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         /// <param name="idVenda"></param>
         /// <param name="vendaDTO"></param>
-        //[System.Web.Http.ActionName("PutById")]
-        //public bool Put(int idVenda, [FromBody] Venda vendaDTO)
-        //{
-        //    Venda vendaRet = null;
+        [HttpPut]
+        [Route("{idVenda:int}")]
+        public IHttpActionResult Put(int idVenda, [FromBody] Venda vendaDTO)
+        {
+            if (vendaDTO == null)
+                return BadRequest("Body da requisição não pode ser vazio");
 
-        //    DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext();
-        //    db.DeferredLoadingEnabled = false;
+            var conn = ConfigurationManager
+                .ConnectionStrings["TesteCamposDealerConnectionString"]
+                .ConnectionString;
 
-        //    try
-        //    {
-        //        vendaRet = (from c in db.Venda
-        //                  where c.idVenda == idVenda
-        //                  select c).FirstOrDefault();
+            using (var db = new DBTesteCamposDealerDataContext(conn))
+            {
+                db.DeferredLoadingEnabled = false;
 
-        //        vendaRet.vlrProduto = vendaDTO.vlrProduto;
-        //        db.SubmitChanges();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw ex;
-        //    }
+                var venda = db.Vendas
+                    .FirstOrDefault(v => v.idVenda == idVenda);
 
-        //    return true;
-        //}
+                if (venda == null)
+                    return Content(HttpStatusCode.NotFound, "Venda não encontrada");
+
+                db.SubmitChanges();
+                return Ok("Venda atualizada com sucesso");
+            }
+        }
 
         /// <summary>
         /// Deleta uma venda pelo seu id
         /// </summary>
         /// <param name="idCliente"></param>
-        [System.Web.Http.ActionName("DeleteById")]
-        public bool Delete(int idVenda)
+        [HttpDelete]
+        [Route("{idVenda:int}")]
+        public IHttpActionResult Delete(int idVenda)
         {
-            Venda vendaRet = null;
             var conn = ConfigurationManager
-            .ConnectionStrings["TesteCamposDealerConnectionString"]
-            .ConnectionString;
+    .ConnectionStrings["TesteCamposDealerConnectionString"]
+    .ConnectionString;
 
-            DBTesteCamposDealerDataContext db = new DBTesteCamposDealerDataContext(conn);
-            db.DeferredLoadingEnabled = false;
-
-            try
+            using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                vendaRet = (from c in db.Vendas
-                          where c.idVenda == idVenda
-                          select c).FirstOrDefault();
+                db.DeferredLoadingEnabled = false;
 
-                db.Vendas.DeleteOnSubmit(vendaRet);
+                var venda = db.Vendas
+                    .FirstOrDefault(v => v.idVenda == idVenda);
+
+                if (venda == null)
+                    return Content(HttpStatusCode.NotFound, "Venda não encontrada");
+
+                db.Vendas.DeleteOnSubmit(venda);
                 db.SubmitChanges();
-            }
-            catch 
-            {
-                throw;
-            }
 
-            return true;
+                return Ok("Venda removida com sucesso");
+            }
         }
     }
 }
