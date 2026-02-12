@@ -64,13 +64,13 @@ namespace TesteCamposDealer.Controllers
         /// <param name="produtoDTO"></param>
         [HttpPost]
         [Route("")]
-        public IHttpActionResult Post([FromBody] Produto produtoDTO)
+        public IHttpActionResult Post([FromBody] ProdutoCreateDTO dto)
         {
-            if (produtoDTO == null)
-                return BadRequest("Body da requisição não pode ser vazio");
+            if (dto == null)
+                return BadRequest("Body não pode ser vazio");
 
-            if (string.IsNullOrWhiteSpace(produtoDTO.dscProduto))
-                return BadRequest("Descrição do produto é obrigatória");
+            if (string.IsNullOrWhiteSpace(dto.dscProduto))
+                return BadRequest("Descrição é obrigatória");
 
             var conn = ConfigurationManager
                 .ConnectionStrings["TesteCamposDealerConnectionString"]
@@ -78,19 +78,34 @@ namespace TesteCamposDealer.Controllers
 
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                db.DeferredLoadingEnabled = false;
-
                 try
                 {
-                    db.Produtos.InsertOnSubmit(produtoDTO);
+                    var produto = new Produto
+                    {
+                        dscProduto = dto.dscProduto,
+                        precoAtual = dto.preco
+                    };
+
+                    db.Produtos.InsertOnSubmit(produto);
                     db.SubmitChanges();
+
+                    var historico = new ProdutoPrecoHistorico
+                    {
+                        idProduto = produto.idProduto,
+                        preco = dto.preco,
+                        dataAlteracao = DateTime.Now
+                    };
+
+                    db.ProdutoPrecoHistoricos.InsertOnSubmit(historico);
+
+                    db.SubmitChanges();
+
+                    return Content(HttpStatusCode.Created, produto);
                 }
                 catch (Exception ex)
                 {
                     return InternalServerError(ex);
                 }
-
-                return Content(HttpStatusCode.Created, produtoDTO);
             }
         }
 
@@ -101,10 +116,10 @@ namespace TesteCamposDealer.Controllers
         /// <param name="value"></param>
         [HttpPut]
         [Route("{idProduto:int}")]
-        public IHttpActionResult Put(int idProduto, [FromBody] Produto produtoDTO)
+        public IHttpActionResult Put(int idProduto, [FromBody] ProdutoCreateDTO dto)
         {
-            if (produtoDTO == null)
-                return BadRequest("Body da requisição não pode ser vazio");
+            if (dto == null)
+                return BadRequest("Body não pode ser vazio");
 
             var conn = ConfigurationManager
                 .ConnectionStrings["TesteCamposDealerConnectionString"]
@@ -112,21 +127,34 @@ namespace TesteCamposDealer.Controllers
 
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                db.DeferredLoadingEnabled = false;
-
                 var produto = db.Produtos
                     .FirstOrDefault(p => p.idProduto == idProduto);
 
                 if (produto == null)
                     return Content(HttpStatusCode.NotFound, "Produto não encontrado");
 
-                produto.dscProduto = produtoDTO.dscProduto;
+                if (produto.precoAtual != dto.preco)
+                {
+                    produto.precoAtual = dto.preco;
+
+                    var historico = new ProdutoPrecoHistorico
+                    {
+                        idProduto = produto.idProduto,
+                        preco = dto.preco,
+                        dataAlteracao = DateTime.Now
+                    };
+
+                    db.ProdutoPrecoHistoricos.InsertOnSubmit(historico);
+                }
+
+                produto.dscProduto = dto.dscProduto;
 
                 db.SubmitChanges();
 
                 return Ok("Produto atualizado com sucesso");
             }
         }
+
 
         /// <summary>
         /// Deleta um Produto pelo seu id

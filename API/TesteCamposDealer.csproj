@@ -170,6 +170,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\DTO\ProdutoCreateDTO.cs" />
+    <Compile Include="Models\DTO\VendaDTO.cs" />
+    <Compile Include="Models\DTO\VendaItemDTO.cs" />
     <Compile Include="Models\VendaVM.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
