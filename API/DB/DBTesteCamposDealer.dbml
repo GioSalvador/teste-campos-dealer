@@ -1,11 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-8"?><Database Name="TesteCamposDealer" Class="DBTesteCamposDealerDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
-  <Table Name="dbo.Cliente" Member="Cliente">
+  <Table Name="dbo.VendaItem" Member="VendaItems">
+    <Type Name="VendaItem">
+      <Column Name="idVendaItem" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="idVenda" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="idProduto" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="quantidade" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="vlrUnitario" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Column Name="vlrTotalItem" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Association Name="Produto_VendaItem" Member="Produto" ThisKey="idProduto" OtherKey="idProduto" Type="Produto" IsForeignKey="true" />
+      <Association Name="Venda_VendaItem" Member="Venda" ThisKey="idVenda" OtherKey="idVenda" Type="Venda" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Cliente" Member="Clientes">
     <Type Name="Cliente">
       <Column Name="idCliente" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="nomeCliente" Type="System.String" DbType="VarChar(200) NOT NULL" CanBeNull="false" />
-      <Column Name="endereco" Type="System.String" DbType="VarChar(20) NOT NULL" CanBeNull="false" />
+      <Column Name="endereco" Type="System.String" DbType="VarChar(30) NOT NULL" CanBeNull="false" />
       <Column Name="dthRegistro" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Association Name="Cliente_Venda" Member="Vendas" ThisKey="idCliente" OtherKey="idCliente" Type="Venda" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Produto" Member="Produtos">
+    <Type Name="Produto">
+      <Column Name="idProduto" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="dscProduto" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="precoAtual" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Association Name="Produto_VendaItem" Member="VendaItems" ThisKey="idProduto" OtherKey="idProduto" Type="VendaItem" />
+      <Association Name="Produto_ProdutoPrecoHistorico" Member="ProdutoPrecoHistoricos" ThisKey="idProduto" OtherKey="idProduto" Type="ProdutoPrecoHistorico" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ProdutoPrecoHistorico" Member="ProdutoPrecoHistoricos">
+    <Type Name="ProdutoPrecoHistorico">
+      <Column Name="idHistorico" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="idProduto" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="preco" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
+      <Column Name="dataAlteracao" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Association Name="Produto_ProdutoPrecoHistorico" Member="Produto" ThisKey="idProduto" OtherKey="idProduto" Type="Produto" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.Venda" Member="Vendas">
@@ -13,26 +43,9 @@
       <Column Name="idVenda" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="idCliente" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="dthRegistro" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="vlrTotalVenda" Type="System.Decimal" DbType="Decimal(18,2) NOT NULL" CanBeNull="false" />
       <Association Name="Venda_VendaItem" Member="VendaItems" ThisKey="idVenda" OtherKey="idVenda" Type="VendaItem" />
       <Association Name="Cliente_Venda" Member="Cliente" ThisKey="idCliente" OtherKey="idCliente" Type="Cliente" IsForeignKey="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.VendaItem" Member="VendaItems">
-    <Type Name="VendaItem">
-      <Column Name="idVendaItem" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="idVenda" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="idProduto" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="quantidade" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="vlrUnitario" Type="System.Double" DbType="Float NOT NULL" CanBeNull="false" />
-      <Association Name="Venda_VendaItem" Member="Venda" ThisKey="idVenda" OtherKey="idVenda" Type="Venda" IsForeignKey="true" />
-      <Association Name="Produto_VendaItem" Member="Produto" ThisKey="idProduto" OtherKey="idProduto" Type="Produto" IsForeignKey="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.Produto" Member="Produtos">
-    <Type Name="Produto">
-      <Column Name="idProduto" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="dscProduto" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
-      <Association Name="Produto_VendaItem" Member="VendaItems" ThisKey="idProduto" OtherKey="idProduto" Type="VendaItem" />
     </Type>
   </Table>
 </Database>

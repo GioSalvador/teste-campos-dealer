@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Configuration;
 using System.Web.Http;
 using TesteCamposDealer.DB;
+using TesteCamposDealer.Models.DTO;
 
 namespace TesteCamposDealer.Controllers
 {
@@ -58,6 +58,34 @@ namespace TesteCamposDealer.Controllers
             }
         }
 
+        /// <summary>
+        /// Recupera todas as vendas de um cliente
+        /// </summary>
+        [HttpGet]
+        [Route("cliente/{idCliente:int}")]
+        public IHttpActionResult GetByCliente(int idCliente)
+        {
+            var conn = ConfigurationManager
+                .ConnectionStrings["TesteCamposDealerConnectionString"]
+                .ConnectionString;
+
+            using (var db = new DBTesteCamposDealerDataContext(conn))
+            {
+                db.DeferredLoadingEnabled = false;
+
+                var clienteExiste = db.Clientes
+                    .Any(c => c.idCliente == idCliente);
+
+                if (!clienteExiste)
+                    return Content(HttpStatusCode.NotFound, "Cliente não encontrado");
+
+                var vendas = db.Vendas
+                    .Where(v => v.idCliente == idCliente)
+                    .ToList();
+
+                return Ok(vendas);
+            }
+        }
 
         /// <summary>
         /// Cadastra uma venda
@@ -66,10 +94,10 @@ namespace TesteCamposDealer.Controllers
 
         [HttpPost]
         [Route("")]
-        public IHttpActionResult Post([FromBody] Venda vendaDTO)
+        public IHttpActionResult Post([FromBody] VendaDTO vendaDTO)
         {
-            if (vendaDTO == null)
-                return BadRequest("Body da requisição não pode ser vazio");
+            if (vendaDTO == null || vendaDTO.itens == null || !vendaDTO.itens.Any())
+                return BadRequest("Venda deve conter ao menos um item");
 
             var conn = ConfigurationManager
                 .ConnectionStrings["TesteCamposDealerConnectionString"]
@@ -79,19 +107,64 @@ namespace TesteCamposDealer.Controllers
             {
                 db.DeferredLoadingEnabled = false;
 
-                try {
+                var cliente = db.Clientes
+                    .FirstOrDefault(c => c.idCliente == vendaDTO.idCliente);
 
-                    db.Vendas.InsertOnSubmit(vendaDTO);
-                    db.SubmitChanges();
-                }
-                catch (Exception ex)
+                if (cliente == null)
+                    return Content(HttpStatusCode.NotFound, "Cliente não encontrado");
+
+                var venda = new Venda
                 {
-                    return InternalServerError(ex);
+                    idCliente = vendaDTO.idCliente,
+                    dthRegistro = DateTime.Now
+                };
+
+                db.Vendas.InsertOnSubmit(venda);
+
+                decimal totalVenda = 0;
+
+                foreach (var itemDTO in vendaDTO.itens)
+                {
+                    var produto = db.Produtos
+                        .FirstOrDefault(p => p.idProduto == itemDTO.idProduto);
+
+                    if (produto == null)
+                        return Content(HttpStatusCode.NotFound, $"Produto {itemDTO.idProduto} não encontrado");
+
+                    decimal totalItem = produto.precoAtual * itemDTO.quantidade;
+
+                    var vendaItem = new VendaItem
+                    {
+                        Venda = venda,
+                        idProduto = produto.idProduto,
+                        quantidade = itemDTO.quantidade,
+                        vlrUnitario = produto.precoAtual,
+                        vlrTotalItem = totalItem
+                    };
+
+                    totalVenda += totalItem;
+
+                    db.VendaItems.InsertOnSubmit(vendaItem);
                 }
 
-                return Content(HttpStatusCode.Created, vendaDTO);
+                venda.vlrTotalVenda = totalVenda;
+
+                db.SubmitChanges();
+
+                var response = new
+                {
+                    venda.idVenda,
+                    venda.idCliente,
+                    venda.dthRegistro,
+                    venda.vlrTotalVenda
+                };
+
+                return Content(HttpStatusCode.Created, response);
             }
         }
+
+
+
 
         /// <summary>
         /// Altera uma venda pelo Id

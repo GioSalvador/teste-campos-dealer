@@ -30,7 +30,7 @@ namespace TesteCamposDealer.Controllers
 
             try
             {
-                cliente = db.Cliente
+                cliente = db.Clientes
                     .FirstOrDefault(c => c.idCliente == idCliente);
             }
             catch (Exception ex)
@@ -59,7 +59,7 @@ namespace TesteCamposDealer.Controllers
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
                 db.DeferredLoadingEnabled = false;
-                var clientes = db.Cliente.ToList();
+                var clientes = db.Clientes.ToList();
                 return Ok(clientes);
             }
         }
@@ -100,7 +100,7 @@ namespace TesteCamposDealer.Controllers
             {
                 clienteDTO.dthRegistro = DateTime.Now;
 
-                db.Cliente.InsertOnSubmit(clienteDTO);
+                db.Clientes.InsertOnSubmit(clienteDTO);
                 db.SubmitChanges();
             }
             catch (Exception ex)
@@ -134,7 +134,7 @@ namespace TesteCamposDealer.Controllers
 
             try
             {
-                var cliente = db.Cliente
+                var cliente = db.Clientes
                     .FirstOrDefault(c => c.idCliente == idCliente);
 
                 if (cliente == null)
@@ -172,13 +172,13 @@ namespace TesteCamposDealer.Controllers
 
             try
             {
-                var cliente = db.Cliente
+                var cliente = db.Clientes
                     .FirstOrDefault(c => c.idCliente == idCliente);
 
                 if (cliente == null)
                     return Content(HttpStatusCode.NotFound, "Cliente não encontrado");
 
-                db.Cliente.DeleteOnSubmit(cliente);
+                db.Clientes.DeleteOnSubmit(cliente);
                 db.SubmitChanges();
             }
             catch (Exception ex)
