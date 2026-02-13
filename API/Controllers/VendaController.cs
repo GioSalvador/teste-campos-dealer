@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Configuration;
 using System.Linq;
 using System.Net;
-using System.Configuration;
 using System.Web.Http;
 using TesteCamposDealer.DB;
 using TesteCamposDealer.Models.DTO;
@@ -11,19 +11,17 @@ namespace TesteCamposDealer.Controllers
     [RoutePrefix("api/venda")]
     public class VendaController : ApiController
     {
+        private readonly string conn = ConfigurationManager
+            .ConnectionStrings["TesteCamposDealerConnectionString"]
+            .ConnectionString;
+
         /// <summary>
-        /// Recupera a Venda por Id..
+        /// Recupera todas as vendas
         /// </summary>
-        /// <param name="idVenda"></param>
-        /// <returns></returns>
         [HttpGet]
         [Route("")]
         public IHttpActionResult GetAll()
         {
-            var conn = ConfigurationManager
-               .ConnectionStrings["TesteCamposDealerConnectionString"]
-               .ConnectionString;
-
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
                 db.DeferredLoadingEnabled = false;
@@ -33,17 +31,12 @@ namespace TesteCamposDealer.Controllers
         }
 
         /// <summary>
-        /// Recupera todas as vendas
+        /// Recupera venda por ID
         /// </summary>
-        /// <returns></returns>
         [HttpGet]
         [Route("{idVenda:int}")]
         public IHttpActionResult GetById(int idVenda)
         {
-            var conn = ConfigurationManager
-                 .ConnectionStrings["TesteCamposDealerConnectionString"]
-                 .ConnectionString;
-
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
                 db.DeferredLoadingEnabled = false;
@@ -52,7 +45,8 @@ namespace TesteCamposDealer.Controllers
                     .FirstOrDefault(v => v.idVenda == idVenda);
 
                 if (venda == null)
-                    return Content(HttpStatusCode.NotFound, "Venda não encontrada");
+                    return Content(HttpStatusCode.NotFound,
+                        new { message = "Venda não encontrada." });
 
                 return Ok(venda);
             }
@@ -65,10 +59,6 @@ namespace TesteCamposDealer.Controllers
         [Route("cliente/{idCliente:int}")]
         public IHttpActionResult GetByCliente(int idCliente)
         {
-            var conn = ConfigurationManager
-                .ConnectionStrings["TesteCamposDealerConnectionString"]
-                .ConnectionString;
-
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
                 db.DeferredLoadingEnabled = false;
@@ -77,7 +67,8 @@ namespace TesteCamposDealer.Controllers
                     .Any(c => c.idCliente == idCliente);
 
                 if (!clienteExiste)
-                    return Content(HttpStatusCode.NotFound, "Cliente não encontrado");
+                    return Content(HttpStatusCode.NotFound,
+                        new { message = "Cliente não encontrado." });
 
                 var vendas = db.Vendas
                     .Where(v => v.idCliente == idCliente)
@@ -88,141 +79,147 @@ namespace TesteCamposDealer.Controllers
         }
 
         /// <summary>
-        /// Cadastra uma venda
+        /// Retorna ranking das 10 maiores vendas
         /// </summary>
-        /// <param name="cliente"></param>
+        [HttpGet]
+        [Route("ranking")]
+        public IHttpActionResult GetRanking()
+        {
+            using (var db = new DBTesteCamposDealerDataContext(conn))
+            {
+                db.DeferredLoadingEnabled = false;
 
+                var ranking = db.Vendas
+                    .OrderByDescending(v => v.vlrTotalVenda)
+                    .Take(10)
+                    .Select(v => new
+                    {
+                        v.idVenda,
+                        v.idCliente,
+                        v.dthRegistro,
+                        v.vlrTotalVenda
+                    })
+                    .ToList();
+
+                return Ok(ranking);
+            }
+        }
+
+        /// <summary>
+        /// Cadastra uma nova venda
+        /// </summary>
         [HttpPost]
         [Route("")]
         public IHttpActionResult Post([FromBody] VendaDTO vendaDTO)
         {
             if (vendaDTO == null || vendaDTO.itens == null || !vendaDTO.itens.Any())
-                return BadRequest("Venda deve conter ao menos um item");
+                return BadRequest("Venda deve conter ao menos um item.");
 
-            var conn = ConfigurationManager
-                .ConnectionStrings["TesteCamposDealerConnectionString"]
-                .ConnectionString;
-
-            using (var db = new DBTesteCamposDealerDataContext(conn))
+            try
             {
-                db.DeferredLoadingEnabled = false;
-
-                var cliente = db.Clientes
-                    .FirstOrDefault(c => c.idCliente == vendaDTO.idCliente);
-
-                if (cliente == null)
-                    return Content(HttpStatusCode.NotFound, "Cliente não encontrado");
-
-                var venda = new Venda
+                using (var db = new DBTesteCamposDealerDataContext(conn))
                 {
-                    idCliente = vendaDTO.idCliente,
-                    dthRegistro = DateTime.Now
-                };
+                    db.DeferredLoadingEnabled = false;
 
-                db.Vendas.InsertOnSubmit(venda);
+                    var cliente = db.Clientes
+                        .FirstOrDefault(c => c.idCliente == vendaDTO.idCliente);
 
-                decimal totalVenda = 0;
+                    if (cliente == null)
+                        return Content(HttpStatusCode.NotFound,
+                            new { message = "Cliente não encontrado." });
 
-                foreach (var itemDTO in vendaDTO.itens)
-                {
-                    var produto = db.Produtos
-                        .FirstOrDefault(p => p.idProduto == itemDTO.idProduto);
-
-                    if (produto == null)
-                        return Content(HttpStatusCode.NotFound, $"Produto {itemDTO.idProduto} não encontrado");
-
-                    decimal totalItem = produto.precoAtual * itemDTO.quantidade;
-
-                    var vendaItem = new VendaItem
+                    var venda = new Venda
                     {
-                        Venda = venda,
-                        idProduto = produto.idProduto,
-                        quantidade = itemDTO.quantidade,
-                        vlrUnitario = produto.precoAtual,
-                        vlrTotalItem = totalItem
+                        idCliente = vendaDTO.idCliente,
+                        dthRegistro = DateTime.Now
                     };
 
-                    totalVenda += totalItem;
+                    db.Vendas.InsertOnSubmit(venda);
 
-                    db.VendaItems.InsertOnSubmit(vendaItem);
+                    decimal totalVenda = 0;
+
+                    foreach (var itemDTO in vendaDTO.itens)
+                    {
+                        var produto = db.Produtos
+                            .FirstOrDefault(p => p.idProduto == itemDTO.idProduto);
+
+                        if (produto == null)
+                            return Content(HttpStatusCode.NotFound,
+                                new { message = $"Produto {itemDTO.idProduto} não encontrado." });
+
+                        decimal totalItem = produto.precoAtual * itemDTO.quantidade;
+
+                        var vendaItem = new VendaItem
+                        {
+                            Venda = venda,
+                            idProduto = produto.idProduto,
+                            quantidade = itemDTO.quantidade,
+                            vlrUnitario = produto.precoAtual,
+                            vlrTotalItem = totalItem
+                        };
+
+                        totalVenda += totalItem;
+                        db.VendaItems.InsertOnSubmit(vendaItem);
+                    }
+
+                    venda.vlrTotalVenda = totalVenda;
+
+                    db.SubmitChanges();
+
+                    var response = new
+                    {
+                        venda.idVenda,
+                        venda.idCliente,
+                        venda.dthRegistro,
+                        venda.vlrTotalVenda
+                    };
+
+                    return Content(HttpStatusCode.Created, response);
                 }
-
-                venda.vlrTotalVenda = totalVenda;
-
-                db.SubmitChanges();
-
-                var response = new
-                {
-                    venda.idVenda,
-                    venda.idCliente,
-                    venda.dthRegistro,
-                    venda.vlrTotalVenda
-                };
-
-                return Content(HttpStatusCode.Created, response);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
             }
         }
 
-
-
-
         /// <summary>
-        /// Altera uma venda pelo Id
+        /// Venda não pode ser alterada após registro
         /// </summary>
-        /// <param name="idVenda"></param>
-        /// <param name="vendaDTO"></param>
         [HttpPut]
         [Route("{idVenda:int}")]
         public IHttpActionResult Put(int idVenda, [FromBody] Venda vendaDTO)
         {
-            if (vendaDTO == null)
-                return BadRequest("Body da requisição não pode ser vazio");
-
-            var conn = ConfigurationManager
-                .ConnectionStrings["TesteCamposDealerConnectionString"]
-                .ConnectionString;
-
-            using (var db = new DBTesteCamposDealerDataContext(conn))
-            {
-                db.DeferredLoadingEnabled = false;
-
-                var venda = db.Vendas
-                    .FirstOrDefault(v => v.idVenda == idVenda);
-
-                if (venda == null)
-                    return Content(HttpStatusCode.NotFound, "Venda não encontrada");
-
-                db.SubmitChanges();
-                return Ok("Venda atualizada com sucesso");
-            }
+            return BadRequest("Venda não pode ser alterada após registro.");
         }
 
         /// <summary>
-        /// Deleta uma venda pelo seu id
+        /// Remove venda por ID
         /// </summary>
-        /// <param name="idCliente"></param>
         [HttpDelete]
         [Route("{idVenda:int}")]
         public IHttpActionResult Delete(int idVenda)
         {
-            var conn = ConfigurationManager
-    .ConnectionStrings["TesteCamposDealerConnectionString"]
-    .ConnectionString;
-
-            using (var db = new DBTesteCamposDealerDataContext(conn))
+            try
             {
-                db.DeferredLoadingEnabled = false;
+                using (var db = new DBTesteCamposDealerDataContext(conn))
+                {
+                    var venda = db.Vendas
+                        .FirstOrDefault(v => v.idVenda == idVenda);
 
-                var venda = db.Vendas
-                    .FirstOrDefault(v => v.idVenda == idVenda);
+                    if (venda == null)
+                        return Content(HttpStatusCode.NotFound,
+                            new { message = "Venda não encontrada." });
 
-                if (venda == null)
-                    return Content(HttpStatusCode.NotFound, "Venda não encontrada");
+                    db.Vendas.DeleteOnSubmit(venda);
+                    db.SubmitChanges();
 
-                db.Vendas.DeleteOnSubmit(venda);
-                db.SubmitChanges();
-
-                return Ok("Venda removida com sucesso");
+                    return Ok(new { message = "Venda removida com sucesso." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
             }
         }
     }
