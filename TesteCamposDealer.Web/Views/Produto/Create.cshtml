@@ -1,0 +1,21 @@
+﻿@model TesteCamposDealer.Web.ViewModels.ProdutoCreateViewModel
+
+<h2>Novo Produto</h2>
+
+<form asp-action="Create" method="post">
+
+    <div class="mb-3">
+        <label class="form-label">Descrição</label>
+        <input asp-for="dscProduto" class="form-control" />
+        <span asp-validation-for="dscProduto" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Preço</label>
+        <input asp-for="preco" class="form-control" />
+        <span asp-validation-for="preco" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Salvar</button>
+    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+</form>

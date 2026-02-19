@@ -1,13 +1,16 @@
 ﻿using System.Text.Json.Serialization;
 
-public class ProdutoViewModel
+namespace TesteCamposDealer.Web.ViewModels
 {
-    [JsonPropertyName("idProduto")]
-    public int IdProduto { get; set; }
+    public class ProdutoViewModel
+    {
+        [JsonPropertyName("idProduto")]
+        public int IdProduto { get; set; }
 
-    [JsonPropertyName("dscProduto")]
-    public string Descricao { get; set; }
+        [JsonPropertyName("dscProduto")]
+        public string Descricao { get; set; }
 
-    [JsonPropertyName("precoAtual")]
-    public decimal Valor { get; set; }
+        [JsonPropertyName("precoAtual")]
+        public decimal Valor { get; set; }
+    }
 }
