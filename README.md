@@ -25,6 +25,7 @@ A aplicação foi desenvolvida utilizando arquitetura baseada em:
 - 
 Modelo: 
 Controller → DataContext → Banco de Dados
+
 Estrutura do projeto no Visual Studio:
 
 Backend:
