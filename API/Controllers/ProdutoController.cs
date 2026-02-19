@@ -23,9 +23,15 @@ namespace TesteCamposDealer.Controllers
         {
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                db.DeferredLoadingEnabled = false;
+                var produtos = db.Produtos
+                    .Select(p => new ProdutoDTO
+                    {
+                        idProduto = p.idProduto,
+                        dscProduto = p.dscProduto,
+                        precoAtual = p.precoAtual
+                    })
+                    .ToList();
 
-                var produtos = db.Produtos.ToList();
                 return Ok(produtos);
             }
         }
@@ -39,10 +45,15 @@ namespace TesteCamposDealer.Controllers
         {
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
-                db.DeferredLoadingEnabled = false;
-
                 var produto = db.Produtos
-                    .FirstOrDefault(p => p.idProduto == idProduto);
+                    .Where(p => p.idProduto == idProduto)
+                    .Select(p => new ProdutoDTO
+                    {
+                        idProduto = p.idProduto,
+                        dscProduto = p.dscProduto,
+                        precoAtual = p.precoAtual
+                    })
+                    .FirstOrDefault();
 
                 if (produto == null)
                     return Content(HttpStatusCode.NotFound,
@@ -60,7 +71,7 @@ namespace TesteCamposDealer.Controllers
         public IHttpActionResult Post([FromBody] ProdutoCreateDTO dto)
         {
             if (dto == null)
-                return BadRequest("Body não pode ser vazio.");
+                return BadRequest("Body da requisição não pode ser vazio.");
 
             if (string.IsNullOrWhiteSpace(dto.dscProduto))
                 return BadRequest("Descrição é obrigatória.");
@@ -79,7 +90,6 @@ namespace TesteCamposDealer.Controllers
                     };
 
                     db.Produtos.InsertOnSubmit(produto);
-                    db.SubmitChanges();
 
                     var historico = new ProdutoPrecoHistorico
                     {
@@ -89,9 +99,17 @@ namespace TesteCamposDealer.Controllers
                     };
 
                     db.ProdutoPrecoHistoricos.InsertOnSubmit(historico);
+
                     db.SubmitChanges();
 
-                    return Content(HttpStatusCode.Created, produto);
+                    var produtoDTO = new ProdutoDTO
+                    {
+                        idProduto = produto.idProduto,
+                        dscProduto = produto.dscProduto,
+                        precoAtual = produto.precoAtual
+                    };
+
+                    return Content(HttpStatusCode.Created, produtoDTO);
                 }
             }
             catch (Exception ex)
@@ -105,10 +123,10 @@ namespace TesteCamposDealer.Controllers
         /// </summary>
         [HttpPut]
         [Route("{idProduto:int}")]
-        public IHttpActionResult Put(int idProduto, [FromBody] ProdutoCreateDTO dto)
+        public IHttpActionResult Put(int idProduto, [FromBody] ProdutoUpdateDTO dto)
         {
             if (dto == null)
-                return BadRequest("Body não pode ser vazio.");
+                return BadRequest("Body da requisição não pode ser vazio.");
 
             if (string.IsNullOrWhiteSpace(dto.dscProduto))
                 return BadRequest("Descrição é obrigatória.");

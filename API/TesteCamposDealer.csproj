@@ -173,6 +173,8 @@
     <Compile Include="Models\DTO\ClienteCreateDTO.cs" />
     <Compile Include="Models\DTO\ClienteUpdateDTO.cs" />
     <Compile Include="Models\DTO\ProdutoCreateDTO.cs" />
+    <Compile Include="Models\DTO\ProdutoDTO.cs" />
+    <Compile Include="Models\DTO\ProdutoUpdateDTO.cs" />
     <Compile Include="Models\DTO\VendaDTO.cs" />
     <Compile Include="Models\DTO\VendaItemDTO.cs" />
     <Compile Include="Models\VendaVM.cs" />

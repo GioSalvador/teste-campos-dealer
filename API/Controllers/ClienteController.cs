@@ -162,7 +162,7 @@ public class ClienteController : ApiController
 
                 db.SubmitChanges();
 
-                return Ok(cliente);
+                return Ok(new { message = "Cliente atualizado com sucesso." });
             }
         }
         catch (Exception ex)
@@ -170,7 +170,6 @@ public class ClienteController : ApiController
             return InternalServerError(ex);
         }
     }
-
 
     /// <summary>
     /// Remove cliente por ID
