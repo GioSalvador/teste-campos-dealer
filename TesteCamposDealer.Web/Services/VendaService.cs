@@ -21,5 +21,11 @@ namespace TesteCamposDealer.Web.Services
             var response = await _httpClient.PostAsJsonAsync("venda", venda);
             response.EnsureSuccessStatusCode();
         }
+        public async Task<List<RankingVendaViewModel>> ObterRankingAsync()
+        {
+            return await _httpClient
+                .GetFromJsonAsync<List<RankingVendaViewModel>>("venda/ranking");
+        }
+
     }
 }

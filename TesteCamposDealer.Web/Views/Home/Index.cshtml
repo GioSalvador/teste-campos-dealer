@@ -1,20 +1,69 @@
-﻿<h2>Dashboard</h2>
+﻿@model TesteCamposDealer.Web.ViewModels.DashboardViewModel
 
-<div class="row">
-    <div class="col-md-6">
-        <a asp-controller="Venda" asp-action="Index" class="btn btn-primary w-100">
-            Ver Vendas
-        </a>
-    </div>
+<h2 class="mb-4">Dashboard</h2>
 
-    <div class="col-md-6">
-        <a asp-controller="Cliente" asp-action="Index" class="btn btn-primary w-100">
-            Ver Clientes
-        </a>
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6>Clientes</h6>
+            <h3>@Model.TotalClientes</h3>
+        </div>
     </div>
-    <div class="col-md-6">
-        <a asp-controller="Produto" asp-action="Index" class="btn btn-primary w-100">
-            Ver Produtos
-        </a>
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6>Produtos</h6>
+            <h3>@Model.TotalProdutos</h3>
+        </div>
     </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6>Vendas</h6>
+            <h3>@Model.TotalVendas</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6>Total Vendido</h6>
+            <h3>@Model.ValorTotalVendido.ToString("C")</h3>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm p-4 mb-4">
+    <h5>Top 10 Maiores Vendas</h5>
+
+    @if (Model.Ranking != null && Model.Ranking.Any())
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Venda</th>
+                    <th>Cliente</th>
+                    <th>Data</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Ranking)
+                {
+                    <tr>
+                        <td>@item.idVenda</td>
+                        <td>@item.idCliente</td>
+                        <td>@item.dthRegistro.ToString("dd/MM/yyyy")</td>
+                        <td>@item.vlrTotalVenda.ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Nenhuma venda encontrada.</p>
+    }
+</div>
+
+<div class="d-flex gap-3">
+    <a asp-controller="Venda" asp-action="Index" class="btn btn-primary">Ver Vendas</a>
+    <a asp-controller="Cliente" asp-action="Index" class="btn btn-secondary">Ver Clientes</a>
+    <a asp-controller="Produto" asp-action="Index" class="btn btn-success">Ver Produtos</a>
 </div>
