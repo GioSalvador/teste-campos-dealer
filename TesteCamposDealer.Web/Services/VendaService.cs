@@ -6,47 +6,19 @@ namespace TesteCamposDealer.Web.Services
     {
         private readonly HttpClient _httpClient;
 
-        public VendaService(IHttpClientFactory httpClientFactory)
+        public VendaService(IHttpClientFactory factory)
         {
-            _httpClient = httpClientFactory.CreateClient("ApiClient");
+            _httpClient = factory.CreateClient("ApiClient");
         }
 
-        public async Task<IEnumerable<VendaViewModel>> ObterTodasAsync()
+        public async Task<List<VendaViewModel>> ObterTodasAsync()
         {
-            var response = await _httpClient.GetAsync("venda");
-
-            response.EnsureSuccessStatusCode();
-
-            return await response.Content.ReadFromJsonAsync<IEnumerable<VendaViewModel>>();
+            return await _httpClient.GetFromJsonAsync<List<VendaViewModel>>("venda");
         }
 
-        public async Task<VendaViewModel> ObterPorIdAsync(int id)
-        {
-            var response = await _httpClient.GetAsync($"venda/{id}");
-
-            response.EnsureSuccessStatusCode();
-
-            return await response.Content.ReadFromJsonAsync<VendaViewModel>();
-        }
-
-        public async Task CriarAsync(VendaViewModel venda)
+        public async Task CriarAsync(VendaCreateViewModel venda)
         {
             var response = await _httpClient.PostAsJsonAsync("venda", venda);
-
-            response.EnsureSuccessStatusCode();
-        }
-
-        public async Task AtualizarAsync(int id, VendaViewModel venda)
-        {
-            var response = await _httpClient.PutAsJsonAsync($"venda/{id}", venda);
-
-            response.EnsureSuccessStatusCode();
-        }
-
-        public async Task DeletarAsync(int id)
-        {
-            var response = await _httpClient.DeleteAsync($"venda/{id}");
-
             response.EnsureSuccessStatusCode();
         }
     }

@@ -1,0 +1,45 @@
+﻿@model List<TesteCamposDealer.Web.ViewModels.ClienteViewModel>
+
+<h2>Lista de Clientes</h2>
+
+<a asp-action="Create" class="btn btn-primary mb-3">
+    Novo Cliente
+</a>
+
+
+@if (Model == null || !Model.Any())
+{
+    <p>Nenhum cliente cadastrado.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Endereço</th>
+                <th>Data Cadastro</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cliente in Model)
+            {
+                <tr>
+                    <td>@cliente.NomeCliente</td>
+                    <td>@cliente.Endereco</td>
+                    <td>@cliente.DthRegistro.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <a asp-action="Details"
+                           asp-route-id="@cliente.IdCliente"
+                           class="btn btn-sm btn-primary">
+                            Ver Detalhes
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@cliente.IdCliente" class="btn btn-sm btn-primary">Editar</a>
+                        <a asp-action="Delete" asp-route-id="@cliente.IdCliente" class="btn btn-sm btn-danger">Excluir</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

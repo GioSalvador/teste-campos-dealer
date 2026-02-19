@@ -25,10 +25,32 @@ namespace TesteCamposDealer.Controllers
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
                 db.DeferredLoadingEnabled = false;
-                var vendas = db.Vendas.ToList();
+
+                var vendas = db.Vendas
+                    .Select(v => new
+                    {
+                        v.idVenda,
+                        v.idCliente,
+                        Cliente = v.Cliente.nomeCliente, 
+                        v.dthRegistro,
+                        v.vlrTotalVenda,
+                        VendaItems = v.VendaItems.Select(vi => new
+                        {
+                            vi.idVendaItem,
+                            vi.idProduto,
+                            Produto = vi.Produto.dscProduto, 
+                            vi.quantidade,
+                            vi.vlrUnitario,
+                            vi.vlrTotalItem
+                        })
+                    })
+                    .OrderByDescending(v => v.dthRegistro)
+                    .ToList();
+
                 return Ok(vendas);
             }
         }
+
 
         /// <summary>
         /// Recupera venda por ID
@@ -42,7 +64,25 @@ namespace TesteCamposDealer.Controllers
                 db.DeferredLoadingEnabled = false;
 
                 var venda = db.Vendas
-                    .FirstOrDefault(v => v.idVenda == idVenda);
+                    .Where(v => v.idVenda == idVenda)
+                    .Select(v => new
+                    {
+                        v.idVenda,
+                        v.idCliente,
+                        Cliente = v.Cliente.nomeCliente, 
+                        v.dthRegistro,
+                        v.vlrTotalVenda,
+                        VendaItems = v.VendaItems.Select(vi => new
+                        {
+                            vi.idVendaItem,
+                            vi.idProduto,
+                            Produto = vi.Produto.dscProduto, 
+                            vi.quantidade,
+                            vi.vlrUnitario,
+                            vi.vlrTotalItem
+                        })
+                    })
+                    .FirstOrDefault();
 
                 if (venda == null)
                     return Content(HttpStatusCode.NotFound,
@@ -51,6 +91,7 @@ namespace TesteCamposDealer.Controllers
                 return Ok(venda);
             }
         }
+
 
         /// <summary>
         /// Recupera todas as vendas de um cliente
@@ -72,11 +113,30 @@ namespace TesteCamposDealer.Controllers
 
                 var vendas = db.Vendas
                     .Where(v => v.idCliente == idCliente)
+                    .Select(v => new
+                    {
+                        v.idVenda,
+                        v.idCliente,
+                        Cliente = v.Cliente.nomeCliente, 
+                        v.dthRegistro,
+                        v.vlrTotalVenda,
+                        VendaItems = v.VendaItems.Select(vi => new
+                        {
+                            vi.idVendaItem,
+                            vi.idProduto,
+                            Produto = vi.Produto.dscProduto,
+                            vi.quantidade,
+                            vi.vlrUnitario,
+                            vi.vlrTotalItem
+                        })
+                    })
+                    .OrderByDescending(v => v.dthRegistro)
                     .ToList();
 
                 return Ok(vendas);
             }
         }
+
 
         /// <summary>
         /// Retorna ranking das 10 maiores vendas

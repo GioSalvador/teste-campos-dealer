@@ -1,0 +1,22 @@
+﻿@model TesteCamposDealer.Web.ViewModels.ClienteEditViewModel
+
+<h2>Editar Cliente</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="IdCliente" />
+
+    <div class="mb-3">
+        <label class="form-label">Nome</label>
+        <input asp-for="NomeCliente" class="form-control" />
+        <span asp-validation-for="NomeCliente" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Endereço</label>
+        <input asp-for="Endereco" class="form-control" />
+        <span asp-validation-for="Endereco" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+</form>
