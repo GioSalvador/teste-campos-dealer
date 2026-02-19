@@ -209,3 +209,6 @@ Testes realizados via Postman:
 A API foi estruturada com foco em organização, padronização de respostas HTTP, regras de negócio bem definidas e boas práticas de desenvolvimento.
 A arquitetura permite evolução futura para implementação de autenticação, paginação, cache e separação em camadas de serviço.
 
+## Preview
+
+https://github.com/user-attachments/assets/b6b7e221-21bd-4ec9-8573-24f9c117de71
