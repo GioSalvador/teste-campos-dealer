@@ -1,0 +1,208 @@
+﻿@using TesteCamposDealer.Web.ViewModels
+@model VendaCreateViewModel
+
+<h2>Nova Venda</h2>
+
+<form asp-action="Create" method="post">
+
+    <div class="mb-3">
+        <label>Cliente</label>
+        <select asp-for="IdCliente" class="form-select">
+            <option value="">-- Selecione um cliente --</option>
+
+            @foreach (var cliente in Model.Clientes)
+            {
+                <option value="@cliente.IdCliente">
+                    @cliente.NomeCliente (ID: @cliente.IdCliente)
+                </option>
+            }
+        </select>
+        @* <span asp-validation-for="IdCliente" class="text-danger"></span> *@
+    </div>
+
+    <hr />
+
+    <h4>Itens</h4>
+
+    <div id="itens-container">
+        <div class="row mb-3 item-row align-items-end border rounded p-3 bg-light">
+
+            <div class="col-md-4">
+                <label class="form-label">Produto</label>
+                <select name="Itens[0].IdProduto"
+                        class="form-select produto-select"
+                        onchange="atualizarPreco(this)">
+                    @foreach (var produto in Model.Produtos)
+                    {
+                        <option value="@produto.IdProduto"
+                                data-preco="@produto.Valor">
+                            @produto.Descricao (ID: @produto.IdProduto) - @produto.Valor.ToString("C")
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Preço</label>
+                <input type="text" class="form-control preco" readonly />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Quantidade</label>
+                <input name="Itens[0].Quantidade"
+                       type="number"
+                       class="form-control quantidade"
+                       min="1"
+                       value="1"
+                       oninput="calcularSubtotal(this)" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Subtotal</label>
+                <input type="text" class="form-control subtotal" readonly />
+            </div>
+
+            <div class="col-md-2">
+                <button type="button"
+                        class="btn btn-danger w-100"
+                        onclick="removerItem(this)">
+                    Remover
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="text-end mt-3">
+        <h4>Total da Venda: <span id="total-geral">R$ 0,00</span></h4>
+    </div>
+
+
+    <button type="button" class="btn btn-secondary mb-3" onclick="adicionarItem()">
+        Adicionar Item
+    </button>
+
+    <br />
+
+    <button type="submit" class="btn btn-success">Salvar</button>
+    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+
+</form>
+
+@section Scripts {
+    <script>
+
+        let index = 1;
+
+        function atualizarPreco(select) {
+            const row = select.closest('.item-row');
+            const preco = select.selectedOptions[0].dataset.preco;
+
+            row.querySelector('.preco').value = formatarMoeda(preco);
+
+            calcularSubtotal(select);
+        }
+
+        function calcularSubtotal(elemento) {
+            const row = elemento.closest('.item-row');
+            const preco = parseFloat(row.querySelector('.produto-select')
+                            .selectedOptions[0].dataset.preco);
+            const quantidade = parseInt(row.querySelector('.quantidade').value) || 0;
+
+            const subtotal = preco * quantidade;
+
+            row.querySelector('.subtotal').value = formatarMoeda(subtotal);
+
+            calcularTotalGeral();
+        }
+
+        function calcularTotalGeral() {
+            let total = 0;
+
+            document.querySelectorAll('.subtotal').forEach(function (input) {
+                const valor = input.value.replace("R$", "").replace(".", "").replace(",", ".");
+                total += parseFloat(valor) || 0;
+            });
+
+            document.getElementById('total-geral').innerText = formatarMoeda(total);
+        }
+
+        function removerItem(botao) {
+            const row = botao.closest('.item-row');
+            row.remove();
+            calcularTotalGeral();
+        }
+
+        function adicionarItem() {
+            const container = document.getElementById("itens-container");
+
+            const novoItem = `
+                <div class="row mb-3 item-row align-items-end border rounded p-3 bg-light">
+
+                    <div class="col-md-4">
+                        <label class="form-label">Produto</label>
+                        <select name="Itens[${index}].IdProduto"
+                                class="form-select produto-select"
+                                onchange="atualizarPreco(this)">
+                            @foreach (var produto in Model.Produtos)
+                            {
+                                    <option value="@produto.IdProduto"
+                                            data-preco="@produto.Valor">
+                                        @produto.Descricao (ID: @produto.IdProduto) - @produto.Valor.ToString("C")
+                                    </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">Preço</label>
+                        <input type="text" class="form-control preco" readonly />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">Quantidade</label>
+                        <input name="Itens[${index}].Quantidade"
+                               type="number"
+                               class="form-control quantidade"
+                               min="1"
+                               value="1"
+                               oninput="calcularSubtotal(this)" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">Subtotal</label>
+                        <input type="text" class="form-control subtotal" readonly />
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="button"
+                                class="btn btn-danger w-100"
+                                onclick="removerItem(this)">
+                            Remover
+                        </button>
+                    </div>
+
+                </div>
+            `;
+
+            container.insertAdjacentHTML("beforeend", novoItem);
+
+            index++;
+
+            const ultimoSelect = container.querySelectorAll('.produto-select');
+            atualizarPreco(ultimoSelect[ultimoSelect.length - 1]);
+        }
+
+        function formatarMoeda(valor) {
+            return parseFloat(valor).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            atualizarPreco(document.querySelector('.produto-select'));
+        });
+
+    </script>
+}

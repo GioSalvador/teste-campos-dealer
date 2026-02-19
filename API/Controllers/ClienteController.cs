@@ -20,9 +20,28 @@ public class ClienteController : ApiController
     {
         using (var db = new DBTesteCamposDealerDataContext(conn))
         {
-            db.DeferredLoadingEnabled = false;
-
-            var clientes = db.Clientes.ToList();
+            var clientes = db.Clientes
+                .Select(c => new
+                {
+                    idCliente = c.idCliente,
+                    nomeCliente = c.nomeCliente,
+                    endereco = c.endereco,
+                    dthRegistro = c.dthRegistro,
+                    Vendas = c.Vendas.Select(v => new
+                    {
+                        idVenda = v.idVenda,
+                        dthRegistro = v.dthRegistro,
+                        vlrTotalVenda = v.vlrTotalVenda,
+                        VendaItems = v.VendaItems.Select(vi => new
+                        {
+                            idVendaItem = vi.idVendaItem,
+                            Produto = vi.Produto.dscProduto,
+                            quantidade = vi.quantidade,
+                            vlrTotalItem = vi.vlrTotalItem
+                        }).ToList()
+                    }).ToList()
+                })
+                .ToList();
 
             return Ok(clientes);
         }
@@ -37,14 +56,36 @@ public class ClienteController : ApiController
     {
         using (var db = new DBTesteCamposDealerDataContext(conn))
         {
-            db.DeferredLoadingEnabled = false;
-
             var cliente = db.Clientes
-                            .FirstOrDefault(c => c.idCliente == idCliente);
+                .Where(c => c.idCliente == idCliente)
+                .Select(c => new
+                {
+                    idCliente = c.idCliente,
+                    nomeCliente = c.nomeCliente,
+                    endereco = c.endereco,
+                    dthRegistro = c.dthRegistro,
+                    Vendas = c.Vendas
+                        .OrderByDescending(v => v.dthRegistro)
+                        .Select(v => new
+                        {
+                            idVenda = v.idVenda,
+                            dthRegistro = v.dthRegistro,
+                            vlrTotalVenda = v.vlrTotalVenda,
+                            VendaItems = v.VendaItems.Select(vi => new
+                            {
+                                idVendaItem = vi.idVendaItem,
+                                idProduto = vi.idProduto,
+                                Produto = vi.Produto.dscProduto, 
+                                quantidade = vi.quantidade,
+                                vlrUnitario = vi.vlrUnitario,
+                                vlrTotalItem = vi.vlrTotalItem
+                            }).ToList()
+                        }).ToList()
+                })
+                .FirstOrDefault();
 
             if (cliente == null)
-                return Content(HttpStatusCode.NotFound,
-                               new { message = "Cliente não encontrado." });
+                return NotFound();
 
             return Ok(cliente);
         }
@@ -55,21 +96,28 @@ public class ClienteController : ApiController
     /// </summary>
     [HttpPost]
     [Route("")]
-    public IHttpActionResult Post([FromBody] Cliente cliente)
+    public IHttpActionResult Post([FromBody] ClienteCreateDTO dto)
     {
-        if (cliente == null)
+        if (dto == null)
             return BadRequest("Body da requisição não pode ser vazio.");
 
-        if (string.IsNullOrWhiteSpace(cliente.nomeCliente))
+        if (string.IsNullOrWhiteSpace(dto.nomeCliente))
             return BadRequest("Nome é obrigatório.");
 
-        if (string.IsNullOrWhiteSpace(cliente.endereco))
+        if (string.IsNullOrWhiteSpace(dto.endereco))
             return BadRequest("Endereço é obrigatório.");
 
         try
         {
             using (var db = new DBTesteCamposDealerDataContext(conn))
             {
+                var cliente = new Cliente
+                {
+                    nomeCliente = dto.nomeCliente,
+                    endereco = dto.endereco,
+                    dthRegistro = DateTime.Now 
+                };
+
                 db.Clientes.InsertOnSubmit(cliente);
                 db.SubmitChanges();
 
@@ -87,10 +135,16 @@ public class ClienteController : ApiController
     /// </summary>
     [HttpPut]
     [Route("{idCliente:int}")]
-    public IHttpActionResult Put(int idCliente, [FromBody] Cliente clienteDTO)
+    public IHttpActionResult Put(int idCliente, [FromBody] ClienteUpdateDTO dto)
     {
-        if (clienteDTO == null)
+        if (dto == null)
             return BadRequest("Body da requisição não pode ser vazio.");
+
+        if (string.IsNullOrWhiteSpace(dto.nomeCliente))
+            return BadRequest("Nome é obrigatório.");
+
+        if (string.IsNullOrWhiteSpace(dto.endereco))
+            return BadRequest("Endereço é obrigatório.");
 
         try
         {
@@ -103,14 +157,8 @@ public class ClienteController : ApiController
                     return Content(HttpStatusCode.NotFound,
                                    new { message = "Cliente não encontrado." });
 
-                if (string.IsNullOrWhiteSpace(clienteDTO.nomeCliente))
-                    return BadRequest("Nome é obrigatório.");
-
-                if (string.IsNullOrWhiteSpace(clienteDTO.endereco))
-                    return BadRequest("Endereço é obrigatório.");
-
-                cliente.nomeCliente = clienteDTO.nomeCliente;
-                cliente.endereco = clienteDTO.endereco;
+                cliente.nomeCliente = dto.nomeCliente;
+                cliente.endereco = dto.endereco;
 
                 db.SubmitChanges();
 
@@ -122,6 +170,7 @@ public class ClienteController : ApiController
             return InternalServerError(ex);
         }
     }
+
 
     /// <summary>
     /// Remove cliente por ID

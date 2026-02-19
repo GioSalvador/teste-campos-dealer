@@ -18,6 +18,9 @@ builder.Services.AddHttpClient("ApiClient", (serviceProvider, client) =>
 });
 
 builder.Services.AddScoped<VendaService>();
+builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<ProdutoService>();
+
 
 var app = builder.Build();
 
@@ -38,7 +41,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Venda}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
 app.Run();

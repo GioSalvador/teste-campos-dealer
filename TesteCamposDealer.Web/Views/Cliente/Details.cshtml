@@ -1,0 +1,36 @@
+﻿@model TesteCamposDealer.Web.ViewModels.ClienteViewModel
+
+<h2>@Model.NomeCliente</h2>
+
+<p><strong>Endereço:</strong> @Model.Endereco</p>
+<p><strong>Data Cadastro:</strong> @Model.DthRegistro.ToString("dd/MM/yyyy")</p>
+
+<h3>Vendas</h3>
+
+@if (Model.Vendas == null || !Model.Vendas.Any())
+{
+    <p>Este cliente não possui vendas.</p>
+}
+else
+{
+    foreach (var venda in Model.Vendas)
+    {
+        <div class="card mb-3 p-3">
+            <p><strong>Venda ID: @venda.IdVenda</strong></p>
+            <p>Data: @venda.DthRegistro.ToString("dd/MM/yyyy")</p>
+            <p>Total: R$ @venda.VlrTotalVenda.ToString("N2")</p>
+
+            <h5>Itens</h5>
+            <ul>
+                @foreach (var item in venda.VendaItems)
+                {
+                    <li>
+                        @item.Produto -
+                        @item.Quantidade x -
+                        R$ @item.VlrTotalItem.ToString("N2")
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+}
