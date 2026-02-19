@@ -90,17 +90,17 @@ namespace TesteCamposDealer.Controllers
                     };
 
                     db.Produtos.InsertOnSubmit(produto);
-                    db.SubmitChanges(); // 🔥 PRIMEIRO SALVA O PRODUTO
+                    db.SubmitChanges(); 
 
                     var historico = new ProdutoPrecoHistorico
                     {
-                        idProduto = produto.idProduto, // AGORA o ID existe
+                        idProduto = produto.idProduto, 
                         preco = dto.preco,
                         dataAlteracao = DateTime.Now
                     };
 
                     db.ProdutoPrecoHistoricos.InsertOnSubmit(historico);
-                    db.SubmitChanges(); // 🔥 SALVA O HISTÓRICO
+                    db.SubmitChanges(); 
 
                     var produtoDTO = new ProdutoDTO
                     {
@@ -117,7 +117,6 @@ namespace TesteCamposDealer.Controllers
                 return InternalServerError(ex);
             }
         }
-
 
         /// <summary>
         /// Atualiza produto existente
@@ -191,7 +190,13 @@ namespace TesteCamposDealer.Controllers
                         return Content(HttpStatusCode.NotFound,
                             new { message = "Produto não encontrado." });
 
+                    var historicos = db.ProdutoPrecoHistoricos
+                        .Where(h => h.idProduto == idProduto);
+
+                    db.ProdutoPrecoHistoricos.DeleteAllOnSubmit(historicos);
+
                     db.Produtos.DeleteOnSubmit(produto);
+
                     db.SubmitChanges();
 
                     return Ok(new { message = "Produto removido com sucesso." });
@@ -202,5 +207,6 @@ namespace TesteCamposDealer.Controllers
                 return InternalServerError(ex);
             }
         }
+
     }
 }
