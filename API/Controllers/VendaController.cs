@@ -234,7 +234,10 @@ namespace TesteCamposDealer.Controllers
                         venda.vlrTotalVenda
                     };
 
-                    return Content(HttpStatusCode.Created, response);
+                    return Content(HttpStatusCode.Created, new
+                    {
+                        data = response
+                    });
                 }
             }
             catch (Exception ex)

@@ -163,7 +163,17 @@ namespace TesteCamposDealer.Controllers
 
                     db.SubmitChanges();
 
-                    return Ok(new { message = "Produto atualizado com sucesso." });
+                    var produtoDTO = new ProdutoDTO
+                    {
+                        idProduto = produto.idProduto,
+                        dscProduto = produto.dscProduto,
+                        precoAtual = produto.precoAtual
+                    };
+
+                    return Ok(new
+                    {
+                        data = produtoDTO
+                    });
                 }
             }
             catch (Exception ex)
