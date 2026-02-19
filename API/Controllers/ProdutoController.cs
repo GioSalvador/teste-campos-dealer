@@ -90,17 +90,17 @@ namespace TesteCamposDealer.Controllers
                     };
 
                     db.Produtos.InsertOnSubmit(produto);
+                    db.SubmitChanges(); // 🔥 PRIMEIRO SALVA O PRODUTO
 
                     var historico = new ProdutoPrecoHistorico
                     {
-                        idProduto = produto.idProduto,
+                        idProduto = produto.idProduto, // AGORA o ID existe
                         preco = dto.preco,
                         dataAlteracao = DateTime.Now
                     };
 
                     db.ProdutoPrecoHistoricos.InsertOnSubmit(historico);
-
-                    db.SubmitChanges();
+                    db.SubmitChanges(); // 🔥 SALVA O HISTÓRICO
 
                     var produtoDTO = new ProdutoDTO
                     {
@@ -117,6 +117,7 @@ namespace TesteCamposDealer.Controllers
                 return InternalServerError(ex);
             }
         }
+
 
         /// <summary>
         /// Atualiza produto existente
