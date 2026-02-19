@@ -36,7 +36,7 @@
                     {
                         <option value="@produto.IdProduto"
                                 data-preco="@produto.Valor">
-                            @produto.Descricao (ID: @produto.IdProduto) - @produto.Valor.ToString("C")
+                            @produto.Descricao (ID: @produto.IdProduto) - @produto.Valor.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
                         </option>
                     }
                 </select>
@@ -148,7 +148,7 @@
                             {
                                     <option value="@produto.IdProduto"
                                             data-preco="@produto.Valor">
-                                        @produto.Descricao (ID: @produto.IdProduto) - @produto.Valor.ToString("C")
+                                                    @produto.Descricao (ID: @produto.IdProduto) - @produto.Valor.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
                                     </option>
                             }
                         </select>

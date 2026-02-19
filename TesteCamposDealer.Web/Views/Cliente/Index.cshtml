@@ -17,9 +17,9 @@ else
         <thead>
             <tr>
                 <th>Nome</th>
+                <th>ID</th>
                 <th>Endereço</th>
                 <th>Data Cadastro</th>
-                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -27,6 +27,7 @@ else
             {
                 <tr>
                     <td>@cliente.NomeCliente</td>
+                    <td>@cliente.IdCliente</td>
                     <td>@cliente.Endereco</td>
                     <td>@cliente.DthRegistro.ToString("dd/MM/yyyy")</td>
                     <td>
