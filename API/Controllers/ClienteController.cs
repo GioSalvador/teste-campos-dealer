@@ -121,7 +121,16 @@ public class ClienteController : ApiController
                 db.Clientes.InsertOnSubmit(cliente);
                 db.SubmitChanges();
 
-                return Content(HttpStatusCode.Created, cliente);
+                return Content(HttpStatusCode.Created, new
+                {
+                    data = new
+                    {
+                        cliente.idCliente,
+                        cliente.nomeCliente,
+                        cliente.endereco,
+                        cliente.dthRegistro
+                    }
+                });
             }
         }
         catch (Exception ex)
@@ -162,7 +171,16 @@ public class ClienteController : ApiController
 
                 db.SubmitChanges();
 
-                return Ok(new { message = "Cliente atualizado com sucesso." });
+                return Ok(new
+                {
+                    data = new
+                    {
+                        cliente.idCliente,
+                        cliente.nomeCliente,
+                        cliente.endereco,
+                        cliente.dthRegistro
+                    }
+                });
             }
         }
         catch (Exception ex)
