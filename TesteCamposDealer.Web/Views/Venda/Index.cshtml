@@ -34,7 +34,7 @@
                 </td>
                 <td>@venda.DthRegistro.ToString("dd/MM/yyyy")</td>
                 <td class="text-end">
-                    @venda.VlrTotalVenda.ToString("C")
+                    @venda.VlrTotalVenda.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
                 </td>
             </tr>
         }

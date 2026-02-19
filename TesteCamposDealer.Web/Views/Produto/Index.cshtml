@@ -17,7 +17,7 @@
     {
         <tr>
             <td>@produto.Descricao</td>
-            <td>@produto.Valor.ToString("C")</td>
+                <td>@produto.Valor.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td>
             <td>
                 <a asp-action="Edit" asp-route-id="@produto.IdProduto" class="btn btn-sm btn-primary">Editar</a>
                 <a asp-action="Delete" asp-route-id="@produto.IdProduto" class="btn btn-sm btn-danger">Excluir</a>

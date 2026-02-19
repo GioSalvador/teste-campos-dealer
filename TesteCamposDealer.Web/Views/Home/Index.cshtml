@@ -24,7 +24,7 @@
     <div class="col-md-3">
         <div class="card shadow-sm p-3 text-center">
             <h6>Total Vendido</h6>
-            <h3>@Model.ValorTotalVendido.ToString("C")</h3>
+            <h3>@Model.ValorTotalVendido.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</h3>
         </div>
     </div>
 </div>
@@ -50,7 +50,7 @@
                         <td>@item.idVenda</td>
                         <td>@item.idCliente</td>
                         <td>@item.dthRegistro.ToString("dd/MM/yyyy")</td>
-                        <td>@item.vlrTotalVenda.ToString("C")</td>
+                        <td>@item.vlrTotalVenda.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td>
                     </tr>
                 }
             </tbody>
